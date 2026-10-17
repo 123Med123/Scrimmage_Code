@@ -2,65 +2,61 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
- * Autonomous companion to the "revbot" TeleOp.
+ * Leave and park autonomous for the "revbot".
  *
- * Uses the same hardware setup and the same shooting values as revbot:
- * flywheel at 0.7 power, feeder crServo at full power, pollenServo at 0.
+ * Scoring this targets (BIOBUZZ manual, section 10.5.4):
+ *   LEAVE (3 pts): robot is no longer contacting the perimeter wall
+ *   PARK  (5 pts): robot is at least partially in the LOADING ZONE at the end of AUTO
  *
  * Sequence:
  *   1. Optional start delay
- *   2. Back off the wall
- *   3. Spin up the flywheel (fixed time, since revbot has no velocity feedback)
- *   4. Feed with crServo and intake for a set time
- *   5. Stop everything
+ *   2. Drive out of the starting spot (leg 1)
+ *   3. Optional turn
+ *   4. Optional second drive (leg 2)
+ *   5. Stop and hold
  *
- * All timings and the drive direction below are starting points. Test on the
- * robot and adjust the constants.
+ * The times below are starting points. Distance depends on your robot and battery,
+ * so test and adjust the constants until the robot ends up inside the loading zone.
  */
 @Autonomous(name = "revbot auto", group = "revbot")
 public class revbotAuto extends LinearOpMode {
 
     // ---- Tunable constants ----
-    private static final long   START_DELAY_MS   = 0;     // set to e.g. 10000 to wait for alliance partner
-    private static final double DRIVE_POWER      = -0.25; // negative = back away from the wall (intake faces wall)
-    private static final long   DRIVE_TIME_MS    = 700;
-    private static final double FLYWHEEL_POWER   = 0.7;   // same as revbot
-    private static final long   SPINUP_TIME_MS   = 2500;  // time for flywheel to reach speed
-    private static final double FEED_POWER       = 1.0;   // same as revbot dpad up
-    private static final double INTAKE_POWER     = 1.0;
-    private static final long   FEED_TIME_MS     = 8000;  // how long to feed pollen
-    private static final double POLLEN_START_POS = 0.0;   // same as revbot B button
+    private static final long   START_DELAY_MS = 0;      // wait before moving, e.g. 10000 to let your partner go first
+
+    // Leg 1: drive out of the start. Negative = back away from the wall (intake faces wall).
+    // If the robot goes the wrong way, flip the sign.
+    private static final double DRIVE_POWER    = -0.5;
+    private static final long   LEG1_TIME_MS   = 2000;
+
+    // Optional turn after leg 1. 0 = no turn.
+    // Positive TURN_POWER turns right (left wheel forward, right wheel backward).
+    private static final double TURN_POWER     = 0.4;
+    private static final long   TURN_TIME_MS   = 0;
+
+    // Optional second drive after the turn, same power as leg 1. 0 = skip.
+    private static final long   LEG2_TIME_MS   = 0;
 
     DcMotor leftDrive, rightDrive;
-    DcMotor intakeMotor, flywheel;
-    CRServo crServo;
-    Servo pollenServo;
 
     @Override
     public void runOpMode() {
 
         leftDrive = hardwareMap.get(DcMotor.class, "leftDrive");
         rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-        flywheel = hardwareMap.get(DcMotor.class, "flywheel");
-
-        crServo = hardwareMap.get(CRServo.class, "crServo");
-        pollenServo = hardwareMap.get(Servo.class, "pollenServo");
 
         // Same directions as revbot
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
-        flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        telemetry.addLine("Ready. Intake side to the wall, then press Play.");
+        telemetry.addLine("Ready. Place the robot in its starting spot, then press Play.");
         telemetry.update();
 
         waitForStart();
 
         if (opModeIsActive()) {
-
-            pollenServo.setPosition(POLLEN_START_POS);
 
             // 1. Optional delay
             if (START_DELAY_MS > 0) {
@@ -69,42 +65,46 @@ public class revbotAuto extends LinearOpMode {
                 sleep(START_DELAY_MS);
             }
 
-            // 2. Back off the wall
-            telemetry.addLine("Driving off the wall");
+            // 2. Drive out of the starting spot
+            telemetry.addLine("Leg 1: leaving the start");
             telemetry.update();
-            leftDrive.setPower(DRIVE_POWER);
-            rightDrive.setPower(DRIVE_POWER);
-            sleep(DRIVE_TIME_MS);
+            driveFor(DRIVE_POWER, DRIVE_POWER, LEG1_TIME_MS);
+
+            // 3. Optional turn
+            if (TURN_TIME_MS > 0) {
+                telemetry.addLine("Turning");
+                telemetry.update();
+                driveFor(TURN_POWER, -TURN_POWER, TURN_TIME_MS);
+            }
+
+            // 4. Optional second drive
+            if (LEG2_TIME_MS > 0) {
+                telemetry.addLine("Leg 2: heading to the loading zone");
+                telemetry.update();
+                driveFor(DRIVE_POWER, DRIVE_POWER, LEG2_TIME_MS);
+            }
+
+            // 5. Stop and hold
             leftDrive.setPower(0);
             rightDrive.setPower(0);
-
-            // 3. Spin up the flywheel
-            telemetry.addLine("Spinning up flywheel");
-            telemetry.update();
-            flywheel.setPower(FLYWHEEL_POWER);
-            sleep(SPINUP_TIME_MS);
-
-            // 4. Feed pollen into the flywheel
-            telemetry.addLine("Feeding");
-            telemetry.update();
-            crServo.setPower(FEED_POWER);
-            intakeMotor.setPower(INTAKE_POWER);
-            sleep(FEED_TIME_MS);
-
-            // 5. Stop everything
-            flywheel.setPower(0);
-            crServo.setPower(0);
-            intakeMotor.setPower(0);
-
-            telemetry.addLine("Done");
+            telemetry.addLine("Parked");
             telemetry.update();
         }
 
         // Make sure nothing keeps running if Stop is pressed mid-sequence
         leftDrive.setPower(0);
         rightDrive.setPower(0);
-        flywheel.setPower(0);
-        crServo.setPower(0);
-        intakeMotor.setPower(0);
+    }
+
+    /** Drives both sides at the given powers for a set time, stopping early if Stop is pressed. */
+    private void driveFor(double leftPower, double rightPower, long timeMs) {
+        ElapsedTime timer = new ElapsedTime();
+        leftDrive.setPower(leftPower);
+        rightDrive.setPower(rightPower);
+        while (opModeIsActive() && timer.milliseconds() < timeMs) {
+            idle();
+        }
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
     }
 }
