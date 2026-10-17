@@ -2,8 +2,6 @@
 
 Two-driver TeleOp for the 2026-27 REV DUO FTC Starter Bot.
 
-Two-driver TeleOp for the 2026-27 REV DUO FTC Starter Bot.
-
 Drop `revbot.java` into `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/` of your FTC SDK project.
 
 ## Hardware config names
