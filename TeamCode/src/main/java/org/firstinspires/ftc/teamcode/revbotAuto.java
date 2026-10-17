@@ -13,9 +13,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *
  * Sequence:
  *   1. Optional start delay
- *   2. Drive out of the starting spot (leg 1)
- *   3. Optional turn
- *   4. Optional second drive (leg 2)
+ *   2. Drive straight out from the wall (leg 1)
+ *   3. Turn toward the loading zone
+ *   4. Drive into the loading zone (leg 2)
  *   5. Stop and hold
  *
  * The times below are starting points. Distance depends on your robot and battery,
@@ -27,19 +27,23 @@ public class revbotAuto extends LinearOpMode {
     // ---- Tunable constants ----
     private static final long   START_DELAY_MS = 0;      // wait before moving, e.g. 10000 to let your partner go first
 
-    // Leg 1: short drive along the wall into the loading zone.
-    // Start with the robot parallel to the wall, intake end pointing at the zone.
-    // Positive = intake-first. If the robot goes the wrong way, flip the sign.
+    // Start: next to the loading zone, intake facing the hive (away from the wall).
+    //
+    // Leg 1: drive straight out, away from the wall (this scores LEAVE).
+    // Positive = intake-first. If the robot goes toward the wall, flip the sign.
     private static final double DRIVE_POWER    = 0.5;
-    private static final long   LEG1_TIME_MS   = 800;
+    private static final long   LEG1_TIME_MS   = 500;
 
-    // Optional turn after leg 1. 0 = no turn.
-    // Positive TURN_POWER turns right (left wheel forward, right wheel backward).
-    private static final double TURN_POWER     = 0.4;
-    private static final long   TURN_TIME_MS   = 0;
+    // Turn a quarter turn toward the loading zone.
+    // Positive TURN_POWER turns right, negative turns left.
+    // If it turns the wrong way, flip the sign. If the turn is not 90 degrees,
+    // raise or lower TURN_TIME_MS.
+    private static final double TURN_POWER     = -0.4;
+    private static final long   TURN_TIME_MS   = 450;
 
-    // Optional second drive after the turn, same power as leg 1. 0 = skip.
-    private static final long   LEG2_TIME_MS   = 0;
+    // Leg 2: drive along the wall into the loading zone, same power as leg 1.
+    // Stop with the robot partly inside the zone and not touching the wall.
+    private static final long   LEG2_TIME_MS   = 800;
 
     DcMotor leftDrive, rightDrive;
 
