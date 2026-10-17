@@ -27,10 +27,11 @@ public class revbotAuto extends LinearOpMode {
     // ---- Tunable constants ----
     private static final long   START_DELAY_MS = 0;      // wait before moving, e.g. 10000 to let your partner go first
 
-    // Leg 1: drive out of the start. Negative = back away from the wall (intake faces wall).
-    // If the robot goes the wrong way, flip the sign.
-    private static final double DRIVE_POWER    = -0.5;
-    private static final long   LEG1_TIME_MS   = 2000;
+    // Leg 1: short drive along the wall into the loading zone.
+    // Start with the robot parallel to the wall, intake end pointing at the zone.
+    // Positive = intake-first. If the robot goes the wrong way, flip the sign.
+    private static final double DRIVE_POWER    = 0.5;
+    private static final long   LEG1_TIME_MS   = 800;
 
     // Optional turn after leg 1. 0 = no turn.
     // Positive TURN_POWER turns right (left wheel forward, right wheel backward).
