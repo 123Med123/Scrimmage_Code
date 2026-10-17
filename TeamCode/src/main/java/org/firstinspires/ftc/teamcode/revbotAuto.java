@@ -43,7 +43,7 @@ public class revbotAuto extends LinearOpMode {
 
     // Leg 2: drive along the wall into the loading zone, same power as leg 1.
     // Stop with the robot partly inside the zone and not touching the wall.
-    private static final long   LEG2_TIME_MS   = 800;
+    private static final long   LEG2_TIME_MS   = 700;
 
     DcMotor leftDrive, rightDrive;
 
